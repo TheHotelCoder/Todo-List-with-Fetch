@@ -1,27 +1,22 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
-import { promise } from "remote-origin-url";
+import React, { useEffect, useState } from "react";
 
+// Use states
 const ToDoList = () => {
 	const [todos, setTodos] = useState([]);
 	const [task, setTask] = useState("");
 
+	// Function to add a Task.
 	const AddTask = () => {
 		const newTodos = todos.concat({
 			label: task,
-			done: false
-			// id: Math.random() * 10
+			done: false,
+			id: todos.length
 		});
 		setTodos(newTodos);
-	};
-	function deleteTodo(elementIndex) {
-		let filtered = todos.filter(function(todos, index) {
-			return elementIndex !== index;
-		});
-		setTodos(filtered);
-		fetch("https://assets.breatheco.de/apis/fake/todos/user/GuillermoSR", {
+
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/dianaware", {
 			method: "PUT",
-			body: JSON.stringify(filtered),
+			body: JSON.stringify(newTodos),
 			headers: {
 				"Content-Type": "application/json"
 			}
@@ -29,49 +24,75 @@ const ToDoList = () => {
 			.then(resp => {
 				return resp.json();
 			})
-			.then(data => {
-				console.log(data);
+			.then(responseAsJson => {
+				console.log(responseAsJson);
 			})
 			.catch(error => {
 				console.log(error);
 			});
-		console.log(filtered);
-	}
+		console.log(newTodos);
+	};
 
-	// GET //
+	// Function to delete a task and update back end with fetch PUT
+	const deleteTask = id => {
+		const editedTodos = todos.filter(todo => todo.id !== id);
+		setTodos(editedTodos);
 
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/dianaware", {
+			method: "PUT",
+			body: JSON.stringify(editedTodos),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+			.then(resp => {
+				return resp.json();
+			})
+			.then(responseAsJson => {
+				console.log(responseAsJson);
+			})
+			.catch(error => {
+				console.log(error);
+			});
+		console.log(editedTodos);
+	};
+
+	// FETCH GET EVERYTIME I RE RENDER PAGE
 	useEffect(() => {
-		fetch("https://assets.breatheco.de/apis/fake/todos/user/GuillermoSR")
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/dianaware")
 			.then(res => res.json())
-			.then(json => setTodos(json))
+			.then(data => {
+				setTodos(data);
+				console.log(data);
+			})
 			.catch(error => console.log(error));
 	}, []);
 
-	function deleteAll() {
-		let deleteFull = todos.filter(function(todos, index) {
-			return !remove.includes(todos.index);
-		});
-		setTodos(deleteFull);
+	// FETCH DELETE
+	const deleteAll = () => {
+		setTodos([]);
+		doPutFetch();
+	};
 
-		const deleteMethod = {
-			method: "DELETE", // Method itself
-			headers: { "Content-Type": "application/json" },
-			body: null
-		};
-		// Make the HTTP Delete call using fetch api
+	const doPutFetch = () => {
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/dianaware", {
+			method: "PUT",
+			body: JSON.stringify([]),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+			.then(resp => {
+				return resp.json();
+			})
+			.then(responseAsJson => {
+				console.log(responseAsJson);
+			})
+			.catch(error => {
+				console.log(error);
+			});
+	};
 
-		fetch(
-			"https://assets.breatheco.de/apis/fake/todos/user/GuillermoSR",
-			deleteMethod
-		)
-			.then(res => res.json())
-			.then(data =>
-				// let newTodos = [...todos].splice(0, todos.length);
-				// setTodos(data),
-				console.log(data)
-			) // Manipulate the data retrieved back, if we want to do something with it
-			.catch(err => console.log(err)); // Do something with the error
-	}
 	return (
 		<div>
 			<input
@@ -88,12 +109,14 @@ const ToDoList = () => {
 					return (
 						<li key={index}>
 							{todo.label}
-							<button onClick={() => deleteTodo(index)}>X</button>
+							<button onClick={() => deleteTask(todo.id)}>
+								X
+							</button>
 						</li>
 					);
 				})}
 			</ul>
-			<button onClick={deleteAll}>Delete All</button>
+			<button onClick={deleteAll}>Delete All </button>
 		</div>
 	);
 };
